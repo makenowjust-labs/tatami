@@ -26,6 +26,10 @@ lazy val root = project
     name := "tatami",
     version := "0.1.0-SNAPSHOT",
     console / initialCommands := """
+      |import cats._
+      |import cats.arrow._
+      |import cats.implicits._
+      |
       |import codes.quine.labo.tatami._
       """.stripMargin,
     Compile / console / scalacOptions -= "-Wunused",
@@ -34,6 +38,9 @@ lazy val root = project
       .filter(file => file.getName.startsWith("scala-library") && file.getName.endsWith(".jar"))
       .map(_ -> url(s"http://www.scala-lang.org/api/${scalaVersion.value}/"))
       .toMap,
+    // Dependencies:
+    addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+    libraryDependencies += "org.typelevel" %% "cats-core" % "2.2.0",
     // Settings for test:
     libraryDependencies += "io.monix" %% "minitest" % "2.8.2" % Test,
     testFrameworks += new TestFramework("minitest.runner.Framework")
