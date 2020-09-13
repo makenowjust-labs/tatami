@@ -40,6 +40,7 @@ lazy val root = project
       .toMap,
     // Dependencies:
     addCompilerPlugin("org.typelevel" %% "kind-projector" % "0.11.0" cross CrossVersion.full),
+    addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
     libraryDependencies += "org.typelevel" %% "cats-core" % "2.2.0",
     // Settings for test:
     libraryDependencies += "io.monix" %% "minitest" % "2.8.2" % Test,
