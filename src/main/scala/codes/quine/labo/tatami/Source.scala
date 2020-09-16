@@ -6,6 +6,8 @@ import cats.Eval
 import cats.Foldable
 import cats.Monad
 import cats.Traverse
+import cats.instances.list.catsKernelStdEqForList
+import cats.kernel.Eq
 
 final case class Source[A](eval: Eval[Option[(A, Source[A])]]) {
   def uncons: Option[(A, Source[A])] = eval.value
@@ -23,6 +25,9 @@ object Source extends SourceInstances0 {
 }
 
 private[tatami] trait SourceInstances0 {
+  implicit def catsKernelEqInstanceForSource[A: Eq]: Eq[Source[A]] =
+    Eq.by[Source[A], List[A]](Foldable[Source].toList(_))
+
   implicit val catsInstancesForSource: Alternative[Source] with Monad[Source] with Traverse[Source] =
     new Alternative[Source] with Monad[Source] with Traverse[Source] {
       def pure[A](a: A): Source[A] = Source(Eval.now(Some((a, Source.empty[A]))))

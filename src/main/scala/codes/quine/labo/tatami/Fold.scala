@@ -105,6 +105,14 @@ trait Fold[M[_], A, B] extends Serializable { fab =>
       def end(s: S): M[C] = fab.end(s).map(f)
     }
 
+  def rmapM[C](f: B => M[C])(implicit M: FlatMap[M]): Fold[M, A, C] =
+    new Fold[M, A, C] {
+      type S = fab.S
+      def start: M[S] = fab.start
+      def step(s: S): M[Request[M, A, S]] = fab.step(s)
+      def end(s: S): M[C] = fab.end(s).flatMap(f)
+    }
+
   def dimap[Z, C](f: Z => A)(g: B => C)(implicit M: Functor[M]): Fold[M, Z, C] =
     new Fold[M, Z, C] {
       type S = fab.S
@@ -184,7 +192,7 @@ trait Fold[M[_], A, B] extends Serializable { fab =>
     }
 }
 
-object Fold {
+object Fold extends FoldInstances0 {
   def apply[F[_], M[_], A, B](fa: F[A], fab: Fold[M, A, B])(implicit F: Foldable[F], M: Monad[M]): M[(B, Source[A])] = {
     type S = fab.S
     def foldUntil(fa: F[A], s0: S)(f: S => M[Request[M, A, S]]): M[(S, Source[A])] =

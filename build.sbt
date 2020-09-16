@@ -33,6 +33,7 @@ lazy val root = project
       |import codes.quine.labo.tatami._
       """.stripMargin,
     Compile / console / scalacOptions -= "-Wunused",
+    Test / console / scalacOptions -= "-Wunused",
     // Set URL mapping of scala standard API for Scaladoc.
     apiMappings ++= scalaInstance.value.libraryJars
       .filter(file => file.getName.startsWith("scala-library") && file.getName.endsWith(".jar"))
@@ -44,5 +45,6 @@ lazy val root = project
     libraryDependencies += "org.typelevel" %% "cats-core" % "2.2.0",
     // Settings for test:
     libraryDependencies += "io.monix" %% "minitest" % "2.8.2" % Test,
+    libraryDependencies += "codes.quine.labo" %% "hariko-minitest" % "0.1.0" % Test,
     testFrameworks += new TestFramework("minitest.runner.Framework")
   )

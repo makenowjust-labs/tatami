@@ -1,12 +1,10 @@
 package codes.quine.labo.tatami
 
-import cats.Alternative
 import cats.Applicative
 import cats.FlatMap
 import cats.Foldable
 import cats.Functor
 import cats.Monad
-import cats.arrow.Arrow
 import cats.arrow.Category
 import cats.arrow.Profunctor
 import cats.syntax.functor._
@@ -67,7 +65,7 @@ trait Trans[M[_], A, B] { tab =>
     }
 }
 
-object Trans {
+object Trans extends TransInstances0 {
   def apply[F[_]: Foldable, M[_]: Monad, A, B, C](
       fa: F[A],
       fbc: Fold[M, B, C],
@@ -78,7 +76,7 @@ object Trans {
   def pure[M[_], A, B](b: B)(implicit M: Monad[M]): Trans[M, A, B] =
     new Trans[M, A, B] {
       def trans[C](fbc: Fold[M, B, C]): Fold[M, A, C] =
-        Fold.pure[M, A, B](b).andThen(fbc)
+        fbc.lmap(_ => b)
     }
 
   def empty[M[_], A, B](implicit M: Applicative[M]): Trans[M, A, B] =
@@ -97,12 +95,10 @@ object Trans {
       def trans[C](fac: Fold[M, A, C]): Fold[M, A, C] = fac
     }
 
-  def lift[M[_], A, B](f: A => B)(implicit M: Functor[M]): Trans[M, A, B] =
+  def map[M[_], A, B](f: A => B)(implicit M: Functor[M]): Trans[M, A, B] =
     new Trans[M, A, B] {
       def trans[C](fbc: Fold[M, B, C]): Fold[M, A, C] = fbc.lmap(f)
     }
-
-  def map[M[_], A, B](f: A => B)(implicit M: Functor[M]): Trans[M, A, B] = lift(f)
 
   def filter[M[_], A](f: A => Boolean)(implicit M: Applicative[M]): Trans[M, A, A] =
     new Trans[M, A, A] {
@@ -179,15 +175,7 @@ object Trans {
     zip(LazyList.iterate(0)(_ + 1))
 }
 
-private[tatami] trait TransInstances0 extends TransInstances1 {
-  implicit def catsAlternativeInstanceForTrans[M[_], A](implicit M: Monad[M]): Alternative[Trans[M, A, *]] =
-    new TransAlternative[M, A] { val monad = M }
-
-  implicit def catsArrowInstanceForTrans[M[_]](implicit M: Monad[M]): Arrow[Trans[M, *, *]] =
-    new TransArrow[M] { val monad = M }
-}
-
-private[tatami] trait TransInstances1 {
+private[tatami] trait TransInstances0 {
   implicit def catsFunctorInstanceForTrans[M[_], A](implicit M: Functor[M]): Functor[Trans[M, A, *]] =
     new TransFunctor[M, A] { val functor = M }
 
@@ -203,37 +191,16 @@ private[tatami] trait TransFunctor[M[_], A] extends Functor[Trans[M, A, *]] {
   override def map[B, C](tab: Trans[M, A, B])(f: B => C): Trans[M, A, C] = tab.rmap(f)
 }
 
-private[tatami] trait TransAlternative[M[_], A] extends Alternative[Trans[M, A, *]] with TransFunctor[M, A] {
-  implicit val monad: Monad[M]
-  lazy val functor: Functor[M] = monad
-  def ap[B, C](taf: Trans[M, A, B => C])(tab: Trans[M, A, B]): Trans[M, A, C] =
-    taf.merge(tab).rmap { case (f, b) => f(b) }
-  def pure[B](b: B): Trans[M, A, B] = Trans.pure(b)
-  def combineK[B](tab1: Trans[M, A, B], tab2: Trans[M, A, B]): Trans[M, A, B] = tab1.combine(tab2)
-  def empty[B]: Trans[M, A, B] = Trans.empty
-}
-
 private[tatami] trait TransProfunctor[M[_]] extends Profunctor[Trans[M, *, *]] {
   implicit val functor: Functor[M]
   override def lmap[A, B, C](tab: Trans[M, A, B])(f: C => A): Trans[M, C, B] = tab.lmap(f)
   override def rmap[A, B, C](tab: Trans[M, A, B])(f: B => C): Trans[M, A, C] = tab.rmap(f)
-  override def dimap[A, B, C, D](tab: Trans[M, A, B])(f: C => A)(g: B => D): Trans[M, C, D] = tab.dimap(f)(g)
+  def dimap[A, B, C, D](tab: Trans[M, A, B])(f: C => A)(g: B => D): Trans[M, C, D] = tab.dimap(f)(g)
 }
 
 private[tatami] trait TransCategory[M[_]] extends Category[Trans[M, *, *]] {
   implicit val functor: Functor[M]
-  override def id[A]: Trans[M, A, A] = Trans.id[M, A]
+  def id[A]: Trans[M, A, A] = Trans.id[M, A]
   def compose[A, B, C](tbc: Trans[M, B, C], tab: Trans[M, A, B]): Trans[M, A, C] = tbc.compose(tab)
   override def andThen[A, B, C](tab: Trans[M, A, B], tbc: Trans[M, B, C]): Trans[M, A, C] = tab.andThen(tbc)
-}
-
-private[tatami] trait TransArrow[M[_]] extends Arrow[Trans[M, *, *]] with TransCategory[M] with TransProfunctor[M] {
-  implicit val monad: Monad[M]
-  lazy val functor: Functor[M] = monad
-  def first[A, B, C](tab: Trans[M, A, B]): Trans[M, (A, C), (B, C)] = tab.split(Trans.id[M, C])
-  def lift[A, B](f: A => B): Trans[M, A, B] = Trans.lift(f)
-  override def split[A, B, C, D](tab: Trans[M, A, B], tcd: Trans[M, C, D]): Trans[M, (A, C), (B, D)] =
-    tab.split(tcd)
-  override def merge[A, B, C](tab: Trans[M, A, B], tac: Trans[M, A, C]): Trans[M, A, (B, C)] =
-    tab.merge(tac)
 }

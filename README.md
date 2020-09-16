@@ -1,6 +1,6 @@
 # tatami
 
-> monadic folding with arrow computation.
+> A monadic folding library with transducers.
 
 ## License
 
