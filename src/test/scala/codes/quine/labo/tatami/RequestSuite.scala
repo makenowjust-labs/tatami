@@ -24,9 +24,8 @@ object RequestSuite extends SimpleTestSuite with HarikoChecker {
       fa.lmap(identity[Int]) === fa
     })
     // composition:
-    check(Property.forAll[(Request[Option, Int, Int], Int => Int, Int => Int)] {
-      case (fa, f, g) =>
-        fa.lmap(f.andThen(g)) === fa.lmap(g).lmap(f)
+    check(Property.forAll[(Request[Option, Int, Int], Int => Int, Int => Int)] { case (fa, f, g) =>
+      fa.lmap(f.andThen(g)) === fa.lmap(g).lmap(f)
     })
   }
 
@@ -43,9 +42,8 @@ object RequestSuite extends SimpleTestSuite with HarikoChecker {
       fa.lmapM(Monad[Option].pure(_: Int)) === fa
     })
     // composition:
-    check(Property.forAll[(Request[Option, Int, Int], Int => Option[Int], Int => Option[Int])] {
-      case (fa, f, g) =>
-        fa.lmapM((x: Int) => f(x).flatMap(g)) === fa.lmapM(g).lmapM(f)
+    check(Property.forAll[(Request[Option, Int, Int], Int => Option[Int], Int => Option[Int])] { case (fa, f, g) =>
+      fa.lmapM((x: Int) => f(x).flatMap(g)) === fa.lmapM(g).lmapM(f)
     })
   }
 
@@ -62,9 +60,8 @@ object RequestSuite extends SimpleTestSuite with HarikoChecker {
       fa.rmap(identity) === fa
     })
     // composition:
-    check(Property.forAll[(Request[Option, Int, Int], Int => Int, Int => Int)] {
-      case (fa, f, g) =>
-        fa.rmap(f.andThen(g)) === fa.rmap(f).rmap(g)
+    check(Property.forAll[(Request[Option, Int, Int], Int => Int, Int => Int)] { case (fa, f, g) =>
+      fa.rmap(f.andThen(g)) === fa.rmap(f).rmap(g)
     })
   }
 }

@@ -51,12 +51,11 @@ private[tatami] trait SourceInstances0 {
         }.value
       def foldLeft[A, B](src: Source[A], b: B)(f: (B, A) => B): B =
         Monad[Eval]
-          .tailRecM((src, b)) {
-            case (src0, b) =>
-              src0.eval.map {
-                case None            => Right(b)
-                case Some((a, src1)) => Left((src1, f(b, a)))
-              }
+          .tailRecM((src, b)) { case (src0, b) =>
+            src0.eval.map {
+              case None            => Right(b)
+              case Some((a, src1)) => Left((src1, f(b, a)))
+            }
           }
           .value
       def foldRight[A, B](src: Source[A], lb: Eval[B])(f: (A, Eval[B]) => Eval[B]): Eval[B] =

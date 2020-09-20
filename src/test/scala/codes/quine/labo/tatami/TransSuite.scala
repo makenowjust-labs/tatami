@@ -19,9 +19,8 @@ object TransSuite extends SimpleTestSuite with HarikoChecker {
       fa.map(identity) === fa
     })
     // composition:
-    check(Property.forAll[(M[Boolean], Boolean => Boolean, Boolean => Boolean)] {
-      case (fa, f, g) =>
-        fa.map(f).map(g) === fa.map(f.andThen(g))
+    check(Property.forAll[(M[Boolean], Boolean => Boolean, Boolean => Boolean)] { case (fa, f, g) =>
+      fa.map(f).map(g) === fa.map(f.andThen(g))
     })
   }
 
@@ -36,9 +35,8 @@ object TransSuite extends SimpleTestSuite with HarikoChecker {
     check(
       Property.forAll[
         (Boolean =>: Boolean, (Boolean => Boolean, Boolean => Boolean, Boolean => Boolean, Boolean => Boolean))
-      ] {
-        case (fab, (f1, f2, g1, g2)) =>
-          M.dimap(M.dimap(fab)(f1)(g1))(f2)(g2) === M.dimap(fab)(f2.andThen(f1))(g1.andThen(g2))
+      ] { case (fab, (f1, f2, g1, g2)) =>
+        M.dimap(M.dimap(fab)(f1)(g1))(f2)(g2) === M.dimap(fab)(f2.andThen(f1))(g1.andThen(g2))
       }
     )
   }
@@ -51,9 +49,8 @@ object TransSuite extends SimpleTestSuite with HarikoChecker {
       M.andThen(f, M.id[Boolean]) === f && M.andThen(M.id[Boolean], f) === f
     })
     // associativity:
-    check(Property.forAll[(Boolean =>: Boolean, Boolean =>: Boolean, Boolean =>: Boolean)] {
-      case (f, g, h) =>
-        M.andThen(f, M.andThen(g, h)) === M.andThen(M.andThen(f, g), h)
+    check(Property.forAll[(Boolean =>: Boolean, Boolean =>: Boolean, Boolean =>: Boolean)] { case (f, g, h) =>
+      M.andThen(f, M.andThen(g, h)) === M.andThen(M.andThen(f, g), h)
     })
   }
 }
