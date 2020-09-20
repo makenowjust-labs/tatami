@@ -23,15 +23,14 @@ object TestImplicits {
       MS0: Gen[M[S0]],
       MReq: Gen[M[Request[M, A, S0]]]
   ): Gen[Fold[M, A, B] { type S = S0 }] =
-    Gen.map3(Gen[M[S0]], Gen[S0 => M[Request[M, A, S0]]], Gen[S0 => M[B]]) {
-      case (i, f, g) =>
-        new Fold[M, A, B] {
-          type S = S0
-          def start: M[S0] = i
-          def step(s: S0): M[Request[M, A, S0]] = f(s)
-          def end(s: S0): M[B] = g(s)
-          override def toString: String = s"Fold($i, $f, $g)"
-        }
+    Gen.map3(Gen[M[S0]], Gen[S0 => M[Request[M, A, S0]]], Gen[S0 => M[B]]) { case (i, f, g) =>
+      new Fold[M, A, B] {
+        type S = S0
+        def start: M[S0] = i
+        def step(s: S0): M[Request[M, A, S0]] = f(s)
+        def end(s: S0): M[B] = g(s)
+        override def toString: String = s"Fold($i, $f, $g)"
+      }
     }
 
   implicit def foldGen[M[_], A, B](implicit

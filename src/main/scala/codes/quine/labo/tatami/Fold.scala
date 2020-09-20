@@ -196,16 +196,15 @@ object Fold extends FoldInstances0 {
   def apply[F[_], M[_], A, B](fa: F[A], fab: Fold[M, A, B])(implicit F: Foldable[F], M: Monad[M]): M[(B, Source[A])] = {
     type S = fab.S
     def foldUntil(fa: F[A], s0: S)(f: S => M[Request[M, A, S]]): M[(S, Source[A])] =
-      M.tailRecM[(S, Source[A]), (S, Source[A])]((s0, Source.from(fa))) {
-        case (s1, src1) =>
-          f(s1).flatMap {
-            case Done(ms2) => ms2.map(s2 => Right(s2, src1))
-            case Pull(k) =>
-              src1.uncons match {
-                case None            => M.pure(Right((s1, src1)))
-                case Some((a, src2)) => k(a).map(s2 => Left((s2, src2)))
-              }
-          }
+      M.tailRecM[(S, Source[A]), (S, Source[A])]((s0, Source.from(fa))) { case (s1, src1) =>
+        f(s1).flatMap {
+          case Done(ms2) => ms2.map(s2 => Right(s2, src1))
+          case Pull(k) =>
+            src1.uncons match {
+              case None            => M.pure(Right((s1, src1)))
+              case Some((a, src2)) => k(a).map(s2 => Left((s2, src2)))
+            }
+        }
       }
 
     for {
