@@ -44,7 +44,7 @@ lazy val root = project
     addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
     libraryDependencies += "org.typelevel" %% "cats-core" % "2.2.0",
     // Settings for test:
-    libraryDependencies += "io.monix" %% "minitest" % "2.8.2" % Test,
+    libraryDependencies += "io.monix" %% "minitest" % "2.9.0" % Test,
     libraryDependencies += "codes.quine.labo" %% "hariko-minitest" % "0.1.0" % Test,
     testFrameworks += new TestFramework("minitest.runner.Framework")
   )
